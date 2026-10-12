@@ -835,6 +835,96 @@ pres.addSection({ title: SEC.X });
   s.addNotes("질문이 나오면 참고할 데이터 기준입니다. 모든 전환은 구매완료 기준이고, 브랜드검색 계약금은 하루 단위로 나눠 분석 기간만큼 반영했습니다.");
 }
 
+
+// --- A2. 제외키워드 후보 (검색어 보고서 2026.07.01~09.30에서 추출)
+// 기준: 측정 누락 캠페인(건담닭·올라잇그린 파워링크) 제외, 캠페인×검색어 단위 구매완료 0건·비용 > 0,
+// 브랜드명(꼬기다·꼬끼다·꼬기밥·건담닭·올라잇·통영숙수) 미포함, 자사 핵심 상품명 '전복죽' 제외, 비용 상위 20개
+{
+  const s = content(SEC.X, "제외키워드 후보 상위 20개는 모두 통영숙수 검색어입니다", "부록");
+  const X = "제외 권장", K = "검토";
+  const neg = [
+    ["죽", "전복죽", 16661, K], ["냉동죽", "전복죽", 5643, K], ["물회키트", "물회", 3948, K], ["짜죽", "전복죽", 3734, K],
+    ["냉동전복죽", "전복죽", 3072, K], ["전복죽밀키트", "전복죽", 2831, K], ["물회주문", "물회", 2229, K], ["김호준전복죽", "전복죽", 2126, X],
+    ["죽냉동", "전복죽", 2107, K], ["전복즉은.어떻게.하나요?", "전복죽", 2048, X],
+    ["죽추천", "전복죽", 1969, K], ["명품게우전복죽", "전복죽", 1934, K], ["전복죽은어떻게하나요?", "전복죽", 1874, X], ["한끼전복죽", "전복죽", 1834, K],
+    ["간편죽", "전복죽", 1787, K], ["장우준전복죽", "전복죽", 1685, X], ["게우통전복죽", "전복죽", 1607, K], ["참돔물회밀키트", "물회", 1577, K],
+    ["물회택배", "물회", 1537, K], ["죽", "브랜드", 1527, K],
+  ];
+  const c = (t, o = {}) => ({ text: t, options: { fontSize: 12, ...o } });
+  const tw = 5.9;
+  const tbl = (x, rows, start) => s.addTable([
+    tableHead(["#", "검색어", "캠페인", "비용", "판단"]).map((h) => ({ ...h, options: { ...h.options, fontSize: 12 } })),
+    ...rows.map(([t, camp, cost, j], i) => [
+      c(String(start + i), { color: C.cap, align: "center" }), c(t, { bold: j === X }), c(camp, { color: C.sub }),
+      c(cost.toLocaleString("en-US") + "원", { align: "right" }),
+      c(j, { bold: true, color: j === X ? C.brand : C.sub, fill: j === X ? { color: "FDE4DF" } : undefined }),
+    ]),
+  ], { x, y: TOP, w: tw, colW: [0.4, 2.3, 1.2, 1.0, 1.0], rowH: 0.36, border: { type: "solid", pt: 0.75, color: HEX.line }, valign: "middle", margin: [0.02, 0.08, 0.02, 0.08] });
+  tbl(MX, neg.slice(0, 10), 1);
+  tbl(MX + tw + 0.33, neg.slice(10), 11);
+  T(s, [
+    { text: "제외 권장", options: { bold: true, color: C.brand } },
+    { text: " 타사 브랜드·질문형 검색어   " },
+    { text: "검토", options: { bold: true, color: C.sub } },
+    { text: " 일반 카테고리어. 구매는 없지만 수요가 있는 말이라 제외보다 입찰·매칭 조정부터" },
+  ], { x: MX, y: 5.85, w: CW, h: 0.3, fontSize: 12, color: C.sub });
+  T(s, "기준: 구매 0건 검색어 395개(14.6만 원, 측정 누락 캠페인 제외) 중 브랜드명 미포함, 비용 순. '꼬끼다'(브랜드 오타)와 '전복죽'(자사 상품명, 전복죽 캠페인 구매 8건)은 목록에서 뺐습니다", { x: MX, y: 6.2, w: CW, h: 0.45, fontSize: 11, color: C.cap });
+  s.addNotes(
+    "검색어 보고서에서 구매가 0건인 검색어 중 브랜드명이 들어가지 않은 것을 비용 순으로 뽑은 목록입니다. 상위 20개가 모두 통영숙수 캠페인 검색어입니다.\n" +
+    "다른 회사 전복죽 브랜드나 '어떻게 하나요' 같은 질문형 검색어는 바로 제외하는 게 맞습니다.\n" +
+    "'죽', '냉동죽', '물회키트' 같은 일반 카테고리어는 구매는 없었지만 수요가 있는 말이라, 바로 제외하기보다 입찰과 매칭 방식을 먼저 조정하는 걸 권합니다.\n" +
+    "'꼬끼다'는 브랜드 오타라서, '전복죽'은 자사 핵심 상품명이고 전복죽 캠페인에서는 구매가 8건 있어서 목록에서 뺐습니다."
+  );
+}
+
+// --- A3. GFA 연령·성별 ROAS (GFA 연령·성별 보고서, 2026.07~09, 구매완료 기준)
+{
+  const s = content(SEC.X, "30대 남성과 45~49세 여성에서 효율이 가장 높습니다", "부록");
+  // [연령, 여성 광고비(만 원), 여성 ROAS, 남성 광고비(만 원), 남성 ROAS]
+  const hm = [
+    ["18세 이하", 18, 82, 39, 172], ["19~24세", 91, 184, 139, 250], ["25~29세", 172, 317, 284, 328],
+    ["30~34세", 206, 292, 398, 393], ["35~39세", 163, 300, 377, 356], ["40~44세", 155, 290, 292, 305],
+    ["45~49세", 175, 426, 224, 262], ["50~54세", 117, 260, 115, 218], ["55~59세", 60, 307, 70, 248], ["60세 이상", 46, 197, 49, 262],
+  ];
+  const heat = (v) => v >= 350 ? { fill: { color: HEX.navy }, color: C.white, bold: true }
+    : v >= 300 ? { fill: { color: "D5D3E6" }, color: C.text, bold: true }
+    : v >= 200 ? { fill: { color: "F2F4F6" }, color: C.text }
+    : { fill: { color: "FDE4DF" }, color: C.brand, bold: true };
+  const c = (t, o = {}) => ({ text: t, options: { fontSize: 13, ...o } });
+  s.addTable([
+    tableHead(["연령", "여성 광고비", "여성 ROAS", "남성 광고비", "남성 ROAS"]),
+    ...hm.map(([a, fw, fr, mw, mr]) => [
+      c(a, { bold: true }), c(fw + "만 원", { align: "right", color: C.sub }), c(fr + "%", { align: "center", ...heat(fr) }),
+      c(mw + "만 원", { align: "right", color: C.sub }), c(mr + "%", { align: "center", ...heat(mr) }),
+    ]),
+  ], { x: MX, y: TOP, w: 7.2, colW: [1.4, 1.45, 1.45, 1.45, 1.45], rowH: 0.39, border: { type: "solid", pt: 0.75, color: HEX.white }, valign: "middle", margin: [0.02, 0.1, 0.02, 0.1] });
+  const lg = [[HEX.navy, "350% 이상"], ["D5D3E6", "300~349%"], ["F2F4F6", "200~299%"], ["FDE4DF", "200% 미만"]];
+  lg.forEach(([col, l], i) => {
+    const x = MX + i * 1.8;
+    s.addShape(pres.shapes.RECTANGLE, { x, y: 6.15, w: 0.22, h: 0.22, fill: { color: col }, line: { color: "D1D6DB", width: 0.5 } });
+    T(s, l, { x: x + 0.3, y: 6.12, w: 1.4, h: 0.28, fontSize: 11, color: C.sub, valign: "middle" });
+  });
+
+  const rx = 8.15, rw = W - MX - rx;
+  const cards = [
+    ["22%", "30대 남성 광고비 비중 (774만 원). ROAS 356~393%로 핵심 고객", C.navy],
+    ["426%", "45~49세 여성 ROAS. 그런데 효율이 가장 낮은 40~54세 캠페인(265%) 안에 섞여 있음", C.navy],
+    ["138%", "연령 알 수 없음 323만 원(GFA 광고비의 9%). 19세 미만 57만 원은 ROAS 143%", C.brand],
+  ];
+  cards.forEach(([n, l, col], i) => {
+    const y = TOP + i * 1.55;
+    card(s, rx, y, rw, 1.4);
+    T(s, n, { x: rx + 0.25, y: y + 0.12, w: rw - 0.5, h: 0.55, fontSize: 26, bold: true, color: col, valign: "middle" });
+    T(s, l, { x: rx + 0.25, y: y + 0.68, w: rw - 0.5, h: 0.65, fontSize: 12, color: C.sub });
+  });
+  T(s, "GFA 전체 3,513만 원, ROAS 294% (ADVoost + 수동, 2026.07~09, 구매완료 기준). 성별 알 수 없음은 소액이라 표에서 뺐습니다", { x: rx, y: TOP + 4.6, w: rw, h: 0.5, fontSize: 10, color: C.cap });
+  s.addNotes(
+    "GFA 연령·성별 효율입니다. 진한 칸일수록 ROAS가 높습니다.\n" +
+    "30대 남성이 GFA 광고비의 22%를 쓰면서 ROAS 356~393%로 가장 안정적인 핵심 고객입니다. 45~49세 여성은 426%로 가장 높은데, 지금 캠페인 구조에서는 효율이 가장 낮은 40~54세 캠페인 안에 섞여 있습니다.\n" +
+    "반대로 연령을 알 수 없는 노출에 323만 원, 9%가 쓰였고 ROAS는 138%입니다. 19세 미만 노출도 57만 원, ROAS 143%입니다. 정리 대상입니다."
+  );
+}
+
 // 마지막 장
 {
   const s = pres.addSlide({ masterName: "NC_COVER", sectionTitle: SEC.X });
