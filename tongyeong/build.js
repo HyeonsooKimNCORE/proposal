@@ -160,15 +160,20 @@ pres.addSection({ title: SEC.I });
 {
   const s = content(SEC.I, "현재 ROAS는 BEP의 절반 수준입니다", "Ⅰ 현황 · 목표와 현재");
   const labels = ["3분기 (7~9월)", "10월 1~14일"];
-  s.addChart([
-    { type: pres.charts.BAR, data: [{ name: "ROAS", labels, values: [152, 82] }], options: { barGapWidthPct: 90, chartColors: [HEX.accent] } },
-    { type: pres.charts.LINE, data: [{ name: "BEP 300%", labels, values: [300, 300] }, { name: "목표 450%", labels, values: [450, 450] }], options: { chartColors: [HEX.warn, HEX.accent], lineSize: 2, lineDataSymbol: "none", lineDash: "dash" } },
-  ], {
-    x: MX - 0.1, y: TOP, w: 6.1, h: 4.6,
+  // 콤보 차트(막대+선)는 PowerPoint 복구 오류를 내므로, 막대 차트 + 도형 기준선으로 그림
+  const ch = { x: MX - 0.1, y: TOP, w: 6.1, h: 4.6 };
+  const pa = { y: 0.06, h: 0.82 }; // 플롯 영역(차트 높이 비율), 값 축 0~500
+  s.addChart(pres.charts.BAR, [{ name: "ROAS", labels, values: [152, 82] }], {
+    ...ch, barDir: "col", barGapWidthPct: 90, chartColors: [HEX.accent],
+    layout: { x: 0.04, y: pa.y, w: 0.92, h: pa.h },
     showValue: true, dataLabelFontSize: 13, dataLabelFontBold: true, dataLabelFontFace: "+mn-lt", dataLabelColor: HEX.text, dataLabelFormatCode: '0"%"', dataLabelPosition: "outEnd",
     catAxisLabelColor: HEX.text, catAxisLabelFontSize: 14, catAxisLabelFontFace: "+mn-lt",
-    valAxisHidden: true, valAxisMinVal: 0, valAxisMaxVal: 500, valGridLine: { style: "none" }, catGridLine: { style: "none" },
-    showLegend: true, legendPos: "t", legendFontSize: 12, legendFontFace: "+mn-lt", legendColor: HEX.sub,
+    valAxisHidden: true, valAxisMinVal: 0, valAxisMaxVal: 500, valGridLine: { style: "none" }, catGridLine: { style: "none" }, showLegend: false,
+  });
+  const vy = (v) => ch.y + ch.h * (pa.y + pa.h * (1 - v / 500));
+  [[300, "BEP 300%", HEX.warn, C.warn], [450, "목표 450%", HEX.accent, C.accent]].forEach(([v, l, hex, col]) => {
+    s.addShape(pres.shapes.LINE, { x: ch.x + 0.25, y: vy(v), w: ch.w - 0.5, h: 0, line: { color: hex, width: 2, dashType: "dash" } });
+    T(s, l, { x: ch.x + ch.w - 1.6, y: vy(v) - 0.32, w: 1.35, h: 0.28, fontSize: 12, bold: true, color: col, align: "right" });
   });
   const rx = 6.8, rw = W - MX - rx;
   const c = cell(12);
