@@ -162,7 +162,7 @@ pres.addSection({ title: SEC.I });
   const labels = ["3분기 (7~9월)", "10월 1~14일"];
   s.addChart([
     { type: pres.charts.BAR, data: [{ name: "ROAS", labels, values: [152, 82] }], options: { barGapWidthPct: 90, chartColors: [HEX.accent] } },
-    { type: pres.charts.LINE, data: [{ name: "BEP 300%", labels, values: [300, 300] }, { name: "목표 450%", labels, values: [450, 450] }], options: { chartColors: [HEX.warn, HEX.accent], lineSize: 2, lineDataSymbol: "none", lineDash: ["dash", "solid"] } },
+    { type: pres.charts.LINE, data: [{ name: "BEP 300%", labels, values: [300, 300] }, { name: "목표 450%", labels, values: [450, 450] }], options: { chartColors: [HEX.warn, HEX.accent], lineSize: 2, lineDataSymbol: "none", lineDash: "dash" } },
   ], {
     x: MX - 0.1, y: TOP, w: 6.1, h: 4.6,
     showValue: true, dataLabelFontSize: 13, dataLabelFontBold: true, dataLabelFontFace: "+mn-lt", dataLabelColor: HEX.text, dataLabelFormatCode: '0"%"', dataLabelPosition: "outEnd",
